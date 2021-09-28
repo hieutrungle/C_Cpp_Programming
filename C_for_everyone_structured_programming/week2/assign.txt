@@ -1,0 +1,124 @@
+#include<stdio.h>
+
+typedef enum month
+{
+    jan,
+    feb,
+    mar,
+    apr,
+    may,
+    jun,
+    jul,
+    aug,
+    sep,
+    oct,
+    nov,
+    dec,
+} month_t;
+typedef struct date
+{
+    month_t m;
+    int d;
+} date_t;
+
+
+date_t nextDay(date_t cur_date) {
+    date_t next_day;
+    if (cur_date.m == dec && cur_date.d == 31) {
+        // Last day of the year
+        next_day = (date_t){jan, 1};
+    }
+    else if (cur_date.m == feb && cur_date.d == 28)
+    {
+        // Last day of Feb
+        next_day = (date_t){mar, 1};
+    }
+    else if (cur_date.m == jan || cur_date.m == mar || cur_date.m == may || cur_date.m == jul || cur_date.m == aug || cur_date.m == oct || cur_date.m == dec)
+    {
+        next_day.d = (cur_date.d + 1) % 31;
+        if (cur_date.d >= 31)
+        {
+            next_day.m = cur_date.m + 1;
+            next_day.d = 1;
+        }
+    }
+    else if (cur_date.m == apr || cur_date.m == jun || cur_date.m == sep || cur_date.m == nov)
+    {
+        next_day.d = (cur_date.d + 1) % 30;
+        if (cur_date.d >= 30) {
+            next_day.m = cur_date.m + 1;
+            next_day.d = 1;
+        }
+    }
+
+    return next_day;
+    }
+
+void printDate(struct date date)
+{ //simple function for displaying month and day
+    switch (date.m)
+    {
+    case jan:
+        printf("January day %d\n", date.d);
+        break;
+    case feb:
+        printf("February day %d\n", date.d);
+        break;
+    case mar:
+        printf("March day %d\n", date.d);
+        break;
+    case apr:
+        printf("April day %d\n", date.d);
+        break;
+    case may:
+        printf("May day %d\n", date.d);
+        break;
+    case jun:
+        printf("June day %d\n", date.d);
+        break;
+    case jul:
+        printf("July day %d\n", date.d);
+        break;
+    case aug:
+        printf("August day %d\n", date.d);
+        break;
+    case sep:
+        printf("September day %d\n", date.d);
+        break;
+    case oct:
+        printf("October day %d\n", date.d);
+        break;
+    case nov:
+        printf("November day %d\n", date.d);
+        break;
+    case dec:
+        printf("December day %d\n", date.d);
+        break;
+    default:
+        printf("Out of range!\n");
+        break;
+    }
+}
+
+int main()
+{
+    date_t cur_date_0 = {feb, 28};
+    date_t cur_date_1 = {dec, 31};
+    date_t cur_date_2 = {oct, 31};
+    date_t cur_date_3 = {oct, 1};
+    date_t cur_date_4 = {sep, 30};
+    date_t cur_date_5 = {sep, 3};
+    date_t date_arr[] = {
+        cur_date_0,
+        cur_date_1,
+        cur_date_2,
+        cur_date_3,
+        cur_date_4,
+        cur_date_5};
+    for (int i = 0; i < 6; i++) {
+        printf("Today: ");
+        printDate(date_arr[i]);
+        printf("Tomorrow: ");
+        printDate(nextDay(date_arr[i]));
+    }
+}

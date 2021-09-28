@@ -1,0 +1,224 @@
+// Class of graph
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Graph{
+    public:
+        Graph() {} // contructor, create a blank graph
+
+        Graph(vector<int> v, vector<vector<int>> e) 
+        {
+            // create a new graph with existing vertices and edges
+            vertices = v;
+            edges = e;
+        }
+
+        int getVerticeNumber() { return vertices.size(); }
+
+        int getEdgeNumber() {
+            int edge_num = 0;
+            for (int i = 0; i < edges.size(); i++)
+            {
+                edge_num += edges[i].size() / 2;
+            }
+            // edge_num calculated above include some identical edges,
+            // e.g: (1, 2) == (2, 1) --> divide edge_num by 2 to get the actual edge number
+            // this is an undirected graph
+            // linear complexity with the number of vertices, O(V)
+            return edge_num / 2;
+        }
+
+        int hasNode(int node) {
+            // function to find if the node is in the graph
+            vector<int>::iterator it;
+            // Should used "binary_search()" if the "vertices" is sorted O(logn) instead of "O(n) for find()"
+            it = find(vertices.begin(), vertices.end(), node);
+            if (it != vertices.end()) {
+                return 1;
+            }
+            return 0;
+        }
+
+        int isAdjacent(int node1, int node2) {
+            // check if there is a path from node1 to node2
+            // return -1: node1 is not in the graph
+            // return -2: node2 is not in the graph
+            // return -3: no connection
+            // return -4: node1 == node2
+            // return an integer (0 included): the position of node1
+            if (node1 == node2)
+            {
+                return -4; // node is always connected to itself
+            }
+            if (!hasNode(node1))
+            {
+                cout << "Error: the first node is not in the graph" << endl;
+                return -1;
+            }
+            if (!hasNode(node2))
+            {
+                cout << "Error: the second node is not in the graph" << endl;
+                return -2;
+            }
+            int is_connected = -3; // flag of connected nodes
+            // Check if the 2 given nodes are in the "vertices"
+            if (hasNode(node1) && hasNode(node2))
+            { // The 2 points are in the list of vertices, loop through "edges" vector and check whether they are connected
+                for (int i = 0; i < edges.size(); i++) {
+                    if (edges[i].size() == 1 && (edges[i][0] == node1 || edges[i][0] == node2))
+                    {
+                        break; // node does not have any connection (an isolated node), break immediately to save computational time
+                    }
+                    if (edges[i][0] == node1)
+                    { // found vector of node1 in "edges"
+                        for (int j = 1; i < edges[i].size(); j += 2)
+                        { 
+                            if (edges[i][j] == node2)
+                            { // found the other node in the vector, then break the inner loop
+                                is_connected = i;
+                                break;
+                            }
+                        }
+                        break; // the other node is not found in the edge vector of node1, break the outer loop
+                    }
+                }
+            }
+            return is_connected;
+        }
+
+        void neighbors(int node) {
+            // neighbors (G, x): lists all nodes y such that there is an edge from x to y
+            if (hasNode(node)) {
+                for (int i = 0; i < edges.size(); i++) {
+                    if (edges[i][0] == node) {
+                        // found the node vector
+                        if (edges[i].size() == 1) { // check if the node is isolated
+                            cout << "This is an isolated node" << endl;
+                            break;
+                        }
+                        else { // when there are connections between the node and others
+                            cout << "(this_node - other_node): distance" << endl;
+                            for (int j = 1; j < edges[i].size(); j += 2)
+                            { // print out the connections between the given node and others
+                                cout << "(" << edges[i][0] << " - " << edges[i][j] << "): " << edges[i][j + 1] << endl;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        void addVertice(int node) {
+            vertices.push_back(node);
+        }
+
+        void addEdge(int node1, int node2, int distance) {
+            // add (G, x, y): adds to G the edge from x to y, if it is not there.
+            int number_added = 0; // indicate how many time the edge is added to "edges". Done when = 2
+            int pos_node1 = isAdjacent(node1, node2);
+            int pos_node2 = isAdjacent(node2, node1);
+            // test if the edge is already in the "edges"
+            if (pos_node1 == -3 && pos_node2 == -3)
+            { 
+                for (int i = 0; i < edges.size(); i++) {
+                    if (edges[i][0] == node1) {
+                        edges[i].push_back(node2);
+                        edges[i].push_back(distance);
+                        number_added++;
+                    }
+                    else if (edges[i][0] == node2) {
+                        edges[i].push_back(node1);
+                        edges[i].push_back(distance);
+                        number_added++;
+                    }
+                    if (number_added >= 2) {
+                        break;
+                    }
+                }
+            }
+            else if (pos_node1 >= 0)
+            {
+                cout << "The connection between " << node1 << " and " << node2 << " has already been established!" << endl;
+            }
+        }
+
+        void getEdgeValue(int node1, int node2) {
+            // returns the value associated to the edge from node1 to node2
+            int dist = 0;
+            int pos_node1 = isAdjacent(node1, node2);
+            if (pos_node1 == -3)
+            {
+                cout << "There is no connection between 1st node and 2nd node" << endl;
+            }
+            else if (pos_node1 >= 0)
+            {
+                for (int j = 1; j < edges[pos_node1].size(); j += 2)
+                {
+                    dist = (edges[pos_node1][j] == node2) ? edges[pos_node1][j + 1] : 0;
+                }
+                cout << "Distance between the 2 given nodes is: " << dist << endl;
+            }
+        }
+
+        void setEdgeValue(int node1, int node2, int distance) {
+            // set_edge_value (G, x, y, v): sets the value associated to the edge (x,y) to v
+            int pos_node1 = isAdjacent(node1, node2);
+            int pos_node2 = isAdjacent(node2, node1);
+            if (pos_node1 < 0 || pos_node2 < 0)
+            {
+                cout << "Cannot set the value associated to the edge (" << node1 << "," << node2 << ")" << endl;
+            }
+            else {
+                for (int j = 1; j < edges[pos_node1].size(); j += 2) {
+                    if (edges[pos_node1][j] == node2) {
+                        edges[pos_node1][j + 1] == distance;
+                        break;
+                    }
+                }
+                for (int j = 1; j < edges[pos_node2].size(); j += 2)
+                {
+                    if (edges[pos_node2][j] == node1)
+                    {
+                        edges[pos_node2][j + 1] == distance;
+                        break;
+                    }
+                }
+            }
+        }
+
+    private:
+        vector<int> vertices; // vertice vector
+        /* edges vector. Format:
+         { {start_node1, des_node11, distance11, des_node12, distance12},
+           {start_node2, des_node21, distance21, des_node22, distance22, des_node23, distance23} ... 
+         }
+        */
+        vector<vector<int>> edges;
+};
+
+void testGraphManually() {
+    // Initialize graph without any value, then add nodes 0 -> 9 to the graph
+    Graph g1;
+    for (int i = 0; i < 10; i++) {
+        g1.addVertice(i);
+    }
+    g1.addEdge(0, 1, 5);
+    g1.addEdge(1, 2, 15);
+    g1.addEdge(1, 5, 4);
+    g1.addEdge(3, 2, 7);
+    g1.addEdge(3, 6, 8);
+    g1.addEdge(5, 7, 2);
+    g1.addEdge(8, 6, 3);
+    g1.addEdge(9, 1, 9);
+    g1.addEdge(5, 3, 12);
+    g1.addEdge(7, 2, 32);
+    
+}
+
+int main() {
+    testGraphManually();
+    return 0;
+}
